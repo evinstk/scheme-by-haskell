@@ -2,7 +2,7 @@
 import Text.ParserCombinators.Parsec hiding (spaces)
 import System.Environment
 import Numeric       (readInt, readOct, readHex)
-import Data.Char     (digitToInt)
+import Data.Char     (digitToInt, toLower, toUpper)
 import Data.Maybe    (listToMaybe)
 import Control.Monad (liftM)
 
@@ -16,6 +16,7 @@ data LispVal = Atom String
              | Number Integer
              | String String
              | Bool Bool
+             | Character Char
              | List [LispVal]
              | DottedList [LispVal] LispVal
 
@@ -64,10 +65,24 @@ parseNumber = do
     let digits = first:rest
     return . Number. read $ digits
 
+parseCharacter :: Parser LispVal
+parseCharacter = do
+  char '#' >> char '\\'
+  let ciString :: String -> Parser String
+      ciString = mapM $ \c -> char (toLower c) <|> char (toUpper c)
+  c <- (ciString "space" >> (return ' '))
+       <|> (ciString "newline" >> (return '\n'))
+       <|> letter
+       <|> symbol
+       <|> digit
+       <|> char ' '
+  return . Character $ c
+
 parseExpr :: Parser LispVal
-parseExpr = parseAtom
+parseExpr = parseNumber
+            <|> parseCharacter
+            <|> parseAtom
             <|> parseString
-            <|> parseNumber
             <|> parseQuoted
             <|> do char '('
                    x <- try parseList <|> parseDottedList
