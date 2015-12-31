@@ -40,7 +40,7 @@ parseString = do
   return $ String x
 
 parseNumber :: Parser LispVal
-parseNumber = do
+parseNumber = try $ do
   first <- digit <|> char '#'
   if first == '#'
     then do
@@ -66,10 +66,10 @@ parseNumber = do
     return . Number. read $ digits
 
 parseCharacter :: Parser LispVal
-parseCharacter = do
+parseCharacter = try $ do
   char '#' >> char '\\'
   let ciString :: String -> Parser String
-      ciString = mapM $ \c -> char (toLower c) <|> char (toUpper c)
+      ciString s = try $ mapM (\c -> char (toLower c) <|> char (toUpper c)) s
   c <- (ciString "space" >> (return ' '))
        <|> (ciString "newline" >> (return '\n'))
        <|> letter
