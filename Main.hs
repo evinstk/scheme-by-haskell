@@ -1,9 +1,10 @@
 -- file: Main.hs
 import Text.ParserCombinators.Parsec hiding (spaces)
 import System.Environment
-import Numeric (readInt, readOct, readHex)
-import Data.Char (digitToInt)
-import Data.Maybe (listToMaybe)
+import Numeric       (readInt, readOct, readHex)
+import Data.Char     (digitToInt)
+import Data.Maybe    (listToMaybe)
+import Control.Monad (liftM)
 
 symbol :: Parser Char
 symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
@@ -64,7 +65,29 @@ parseNumber = do
     return . Number. read $ digits
 
 parseExpr :: Parser LispVal
-parseExpr = parseNumber <|> parseAtom <|> parseString
+parseExpr = parseAtom
+            <|> parseString
+            <|> parseNumber
+            <|> parseQuoted
+            <|> do char '('
+                   x <- try parseList <|> parseDottedList
+                   char ')'
+                   return x
+
+parseList :: Parser LispVal
+parseList = liftM List $ sepBy parseExpr spaces
+
+parseDottedList :: Parser LispVal
+parseDottedList = do
+  head <- endBy parseExpr spaces
+  tail <- char '.' >> spaces >> parseExpr
+  return $ DottedList head tail
+
+parseQuoted :: Parser LispVal
+parseQuoted = do
+  char '\''
+  x <- parseExpr
+  return $ List [Atom "quote", x]
 
 readExpr :: String -> String
 readExpr input = case parse parseExpr "lisp" input of
