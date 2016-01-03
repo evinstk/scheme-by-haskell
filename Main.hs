@@ -1,4 +1,6 @@
 -- file: Main.hs
+module Main where
+
 import Text.ParserCombinators.Parsec hiding (spaces)
 import System.Environment
 import Numeric       (readInt, readOct, readHex)
