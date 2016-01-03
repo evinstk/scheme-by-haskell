@@ -11,4 +11,4 @@ makeReader parser input = case parse parser "custom" input of
   Right val -> "Found value: " ++ show val
 
 printExpr :: String -> IO ()
-printExpr = putStrLn . readExpr
+printExpr = putStrLn . show . readExpr
