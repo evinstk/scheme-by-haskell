@@ -21,7 +21,20 @@ data LispVal = Atom String
              | Character Char
              | List [LispVal]
              | DottedList [LispVal] LispVal
-             deriving (Show)
+
+instance Show LispVal where
+  show (Atom name) = name
+  show (Number number) = show number
+  show (String contents) = "\"" ++ contents ++ "\""
+  show (Bool True) = "#t"
+  show (Bool False) = "#f"
+  show (Character c) = "#\\" ++ [c]
+  show (List list) = "(" ++ (unwords . map show $ list) ++ ")"
+  show (DottedList car cdr) = "("
+    ++ (unwords . map show $ car)
+    ++ " . "
+    ++ show cdr
+    ++ ")"
 
 parseAtom :: Parser LispVal
 parseAtom = do
