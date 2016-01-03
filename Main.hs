@@ -10,7 +10,7 @@ symbol :: Parser Char
 symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
 
 spaces :: Parser ()
-spaces = skipMany1 spaces
+spaces = skipMany1 space
 
 data LispVal = Atom String
              | Number Integer
