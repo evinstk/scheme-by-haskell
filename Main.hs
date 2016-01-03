@@ -54,9 +54,12 @@ parseNumber = do
           case maybeDecVal of
             Just (decVal,_) -> return $ Number decVal
             Nothing         -> fail "Invalid digit string"
-    let readBin = readInt 2 (`elem` "01") digitToInt
-    radix <- oneOf "bodhBODH"
-    let dispatch radix | radix `elem` ['b', 'B'] =
+
+        readBin :: String -> [(Integer, String)]
+        readBin = readInt 2 (`elem` "01") digitToInt
+
+        dispatch :: Char -> Parser LispVal
+        dispatch radix | radix `elem` ['b', 'B'] =
                            readAndConvert readBin
                        | radix `elem` ['o', 'O'] =
                            readAndConvert readOct
@@ -65,6 +68,8 @@ parseNumber = do
                            return . Number . read $ digits
                        | radix `elem` ['h', 'H'] =
                            readAndConvert readHex
+
+    radix <- oneOf "bodhBODH"
     dispatch radix
     else do
     rest <- many digit
