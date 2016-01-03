@@ -43,7 +43,7 @@ parseString = do
   return $ String x
 
 parseNumber :: Parser LispVal
-parseNumber = try $ do
+parseNumber = do
   first <- digit <|> char '#'
   if first == '#'
     then do
@@ -72,7 +72,7 @@ parseNumber = try $ do
     return . Number. read $ digits
 
 parseCharacter :: Parser LispVal
-parseCharacter = try $ do
+parseCharacter = do
   char '#' >> char '\\'
   let ciString :: String -> Parser String
       ciString s = try $ mapM (\c -> char (toLower c) <|> char (toUpper c)) s
@@ -85,11 +85,11 @@ parseCharacter = try $ do
   return . Character $ c
 
 parseExpr :: Parser LispVal
-parseExpr = parseNumber
-            <|> parseCharacter
-            <|> parseAtom
-            <|> parseString
-            <|> parseQuoted
+parseExpr = try parseNumber
+            <|> try parseCharacter
+            <|> try parseAtom
+            <|> try parseString
+            <|> try parseQuoted
             <|> do char '('
                    x <- try parseList <|> parseDottedList
                    char ')'
