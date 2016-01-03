@@ -49,22 +49,25 @@ parseNumber = try $ do
     then do
     let readAndConvert :: (String -> [(Integer, String)]) -> Parser LispVal
         readAndConvert readFn = do
-          digits <- many1 digit
+          digits <- many1 (digit <|> oneOf "abcdefABCDEF")
           let maybeDecVal = listToMaybe . readFn $ digits
           case maybeDecVal of
             Just (decVal,_) -> return $ Number decVal
             Nothing         -> fail "Invalid digit string"
     let readBin = readInt 2 (`elem` "01") digitToInt
-    radix <- oneOf "bodh"
-    case radix of
-      'b' -> readAndConvert readBin
-      'o' -> readAndConvert readOct
-      'd' -> do
-        digits <- many1 digit
-        return . Number . read $ digits
-      'h' -> readAndConvert readHex
+    radix <- oneOf "bodhBODH"
+    let dispatch radix | radix `elem` ['b', 'B'] =
+                           readAndConvert readBin
+                       | radix `elem` ['o', 'O'] =
+                           readAndConvert readOct
+                       | radix `elem` ['d', 'D'] = do
+                           digits <- many1 digit
+                           return . Number . read $ digits
+                       | radix `elem` ['h', 'H'] =
+                           readAndConvert readHex
+    dispatch radix
     else do
-    rest <- many1 digit
+    rest <- many digit
     let digits = first:rest
     return . Number. read $ digits
 
