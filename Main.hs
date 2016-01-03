@@ -19,6 +19,7 @@ data LispVal = Atom String
              | Character Char
              | List [LispVal]
              | DottedList [LispVal] LispVal
+             deriving (Show)
 
 parseAtom :: Parser LispVal
 parseAtom = do
@@ -106,8 +107,8 @@ parseQuoted = do
 
 readExpr :: String -> String
 readExpr input = case parse parseExpr "lisp" input of
-  Left err -> "No match: " ++ show err
-  Right _  -> "Found value"
+  Left err   -> "No match: " ++ show err
+  Right val  -> "Found value: " ++ show val
 
 main :: IO ()
 main = do
