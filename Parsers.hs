@@ -35,6 +35,7 @@ parseExpr = try parseNumber
             <|> try parseString
             <|> try parseQuoted
             <|> do char '('
+                   skipMany space
                    x <- try parseList <|> parseDottedList
                    char ')'
                    return x
