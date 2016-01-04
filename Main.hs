@@ -135,12 +135,18 @@ readExpr input = case parse parseExpr "lisp" input of
 
 primitives :: [(String, [LispVal] -> LispVal)]
 primitives = [("+", numericBinop (+)),
-              ("-", numericBinop (-))]
+              ("-", numericBinop (-)),
+              ("*", numericBinop (*)),
+              ("/", numericBinop div),
+              ("mod", numericBinop mod),
+              ("quotient", numericBinop quot),
+              ("remainder", numericBinop rem)]
 
 numericBinop :: (Integer -> Integer -> Integer) -> [LispVal] -> LispVal
 numericBinop op params = Number $ foldl1 op $ map unpackNum params
   where unpackNum :: LispVal -> Integer
         unpackNum (Number n) = n
+        -- Following cases allow weak typing
         unpackNum (String n) = let parsed = reads n :: [(Integer, String)] in
           if null parsed
           then 0
