@@ -112,12 +112,18 @@ parseCharacter = do
   return . Character $ c
 
 parseList :: Parser LispVal
-parseList = liftM List $ sepBy parseExpr spaces
+parseList = liftM List $ do
+  list <- try $ do list <- endBy parseExpr spaces
+                   notFollowedBy $ char '.'
+                   return list
+    <|> sepBy parseExpr spaces
+  return list
 
 parseDottedList :: Parser LispVal
 parseDottedList = do
   head <- endBy parseExpr spaces
   tail <- char '.' >> spaces >> parseExpr
+  skipMany space
   return $ DottedList head tail
 
 parseQuoted :: Parser LispVal
