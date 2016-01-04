@@ -3,14 +3,20 @@ module Main where
 import Parsers
 import Text.ParserCombinators.Parsec (parse)
 import System.Environment
+import System.IO
 import Control.Exception
 
 main :: IO ()
-main = getArgs >>= readEvalPrint . head
+main = do
+  arg:_ <- getArgs
+  if arg == "-i"
+    then repl
+    else readEvalPrint arg
 
 repl :: IO ()
 repl = do
   putStr "scheme> "
+  hFlush stdout
   val <- getLine >>= return . readExpr
   -- TODO: Write custom exception
   let handler :: (PatternMatchFail -> IO ())
