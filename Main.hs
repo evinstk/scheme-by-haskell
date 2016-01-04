@@ -3,9 +3,30 @@ module Main where
 import Parsers
 import Text.ParserCombinators.Parsec (parse)
 import System.Environment
+import Control.Exception
 
 main :: IO ()
-main = getArgs >>= print . eval . readExpr . head
+main = getArgs >>= readEvalPrint . head
+
+repl :: IO ()
+repl = do
+  putStr "scheme> "
+  val <- getLine >>= return . readExpr
+  -- TODO: Write custom exception
+  let handler :: (PatternMatchFail -> IO ())
+      handler e = do
+        putStrLn $ "Error: Cannot evaluate \"" ++ (show val) ++ "\""
+  case val of
+    List [Atom "quit"] -> putStrLn "Goodbye!"
+    _                  -> do
+      catch (print . eval $ val) handler
+      repl
+
+readEvalPrint :: String -> IO ()
+readEvalPrint = print . readEval
+
+readEval :: String -> LispVal
+readEval = eval . readExpr
 
 readExpr :: String -> LispVal
 readExpr input = case parse parseExpr "lisp" input of
