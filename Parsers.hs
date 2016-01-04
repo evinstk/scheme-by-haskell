@@ -113,9 +113,10 @@ parseCharacter = do
   return . Character $ c
 
 parseList :: Parser LispVal
-parseList = liftM List $ do
+parseList = let notDottedList = notFollowedBy $ char '.'
+            in liftM List $ do
   list <- try $ do list <- endBy parseExpr spaces
-                   notFollowedBy $ char '.'
+                   notDottedList
                    return list
     <|> sepBy parseExpr spaces
   return list
