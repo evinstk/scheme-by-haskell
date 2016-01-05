@@ -54,7 +54,7 @@ parseAtom = do
   return $ case atom of
     "#t" -> Bool True
     "#f" -> Bool False
-    _    -> Atom atom
+    _    -> Atom $ map toLower atom
 
 parseString :: Parser LispVal
 parseString = do
