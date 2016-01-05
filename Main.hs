@@ -44,9 +44,23 @@ eval val@(String _) = val
 eval val@(Number _) = val
 eval val@(Bool _) = val
 eval (List [Atom "quote", val]) = val
+eval (List [Atom "symbol?", val]) = case eval val of
+  (Atom _) -> Bool True
+  _        -> Bool False
+eval (List [Atom "string?", val]) = case eval val of
+  (String _) -> Bool True
+  _          -> Bool False
+eval (List [Atom "number?", val]) = case eval val of
+  (Number _) -> Bool True
+  _          -> Bool False
+eval (List [Atom "symbol->string", val]) = convert $ eval val
+  where convert (Atom symbol) = String symbol
+eval (List [Atom "string->symbol", val]) = convert $ eval val
+  where convert (String string) = Atom string
 eval (List (Atom func:args)) = apply func $ map eval args
 
 apply :: String -> [LispVal] -> LispVal
+-- Interesting that #f is the default value
 apply func args = maybe (Bool False) ($ args) $ lookup func primitives
 
 primitives :: [(String, [LispVal] -> LispVal)]
