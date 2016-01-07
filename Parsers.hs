@@ -5,28 +5,7 @@ import Data.Char     (digitToInt, toLower, toUpper)
 import Numeric       (readInt, readOct, readHex)
 import Data.Maybe    (listToMaybe)
 import Control.Monad (liftM)
-
-data LispVal = Atom String
-             | Number Integer
-             | String String
-             | Bool Bool
-             | Character Char
-             | List [LispVal]
-             | DottedList [LispVal] LispVal
-
-instance Show LispVal where
-  show (Atom name) = name
-  show (Number number) = show number
-  show (String contents) = "\"" ++ contents ++ "\""
-  show (Bool True) = "#t"
-  show (Bool False) = "#f"
-  show (Character c) = "#\\" ++ [c]
-  show (List list) = "(" ++ (unwords . map show $ list) ++ ")"
-  show (DottedList car cdr) = "("
-    ++ (unwords . map show $ car)
-    ++ " . "
-    ++ show cdr
-    ++ ")"
+import LispData
 
 parseExpr :: Parser LispVal
 parseExpr = try parseNumber
