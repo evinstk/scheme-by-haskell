@@ -125,6 +125,8 @@ strBoolBinop :: (String -> String -> Bool) -> [LispVal] -> ThrowsError LispVal
 strBoolBinop = boolBinop unpackString
   where unpackString :: LispVal -> ThrowsError String
         unpackString (String s) = return s
+        unpackString (Number s) = return $ show s
+        unpackString (Bool s)   = return $ show s
         unpackString notStr     = throwError $ TypeMismatch "string" notStr
 
 boolBinop :: (LispVal -> ThrowsError a) -> (a -> a -> Bool) -> [LispVal] -> ThrowsError LispVal
