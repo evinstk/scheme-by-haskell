@@ -89,11 +89,11 @@ eval (List [Atom "if", pred, conseq, alt]) = do
   case result of
     Bool True -> eval conseq
     otherwise -> eval alt
+eval form@(List (Atom "if":_)) = throwError $ BadSpecialForm "Bad special form" form
 
 eval (List (Atom func:args)) = mapM eval args >>= apply func
 
 apply :: String -> [LispVal] -> ThrowsError LispVal
--- Interesting that #f is the default value
 apply func args = maybe
   (throwError $ NotFunction "Unrecognized primitive function args" func)
   ($ args) $ lookup func primitives
