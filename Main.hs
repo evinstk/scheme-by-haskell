@@ -56,34 +56,6 @@ eval val@(Number _) = return val
 eval val@(Bool _) = return val
 eval (List [Atom "quote", val]) = return val
 
-eval (List [Atom "symbol?", val]) = do
-  evaled <- eval val
-  case evaled of
-    (Atom _) -> return $ Bool True
-    _        -> return $ Bool False
-
-eval (List [Atom "string?", val]) = do
-  evaled <- eval val
-  case evaled of
-    (String _) -> return $ Bool True
-    _          -> return $ Bool False
-
-eval (List [Atom "number?", val]) = do
-  evaled <- eval val
-  case evaled of
-    (Number _) -> return $ Bool True
-    _          -> return $ Bool False
-
-eval (List [Atom "symbol->string", val]) = do
-  evaled <- eval val
-  return $ convert evaled
-    where convert (Atom symbol) = String symbol
-
-eval (List [Atom "string->symbol", val]) = do
-  evaled <- eval val
-  return $ convert evaled
-    where convert (String string) = Atom string
-
 eval (List [Atom "if", pred, conseq, alt]) = do
   result <- eval pred
   case result of
@@ -120,7 +92,12 @@ primitives = [("+", numericBinop (+)),
               ("string>=?", strBoolBinop (>=)),
               ("car", car),
               ("cdr", cdr),
-              ("cons", cons)]
+              ("cons", cons),
+              ("string?", testString),
+              ("symbol?", testSymbol),
+              ("number?", testNumber),
+              ("symbol->string", symbolToString),
+              ("string->symbol", stringToSymbol)]
 
 numericBinop :: (Integer -> Integer -> Integer) -> [LispVal] -> ThrowsError LispVal
 numericBinop op [] = throwError $ NumArgs 2 []
@@ -179,3 +156,28 @@ cons [x, List xs]             = return $ List (x:xs)
 cons [x, DottedList xs xlast] = return $ DottedList (x:xs) xlast
 cons [x1, x2]                 = return $ DottedList [x1] x2
 cons badArgList               = throwError $ NumArgs 2 badArgList
+
+testString :: [LispVal] -> ThrowsError LispVal
+testString [(String _)] = return $ Bool True
+testString [_]          = return $ Bool False
+testString badArgList   = throwError $ NumArgs 1 badArgList
+
+testSymbol :: [LispVal] -> ThrowsError LispVal
+testSymbol [(Atom _)] = return $ Bool True
+testSymbol [_]        = return $ Bool False
+testSymbol badArgList = throwError $ NumArgs 1 badArgList
+
+testNumber :: [LispVal] -> ThrowsError LispVal
+testNumber [(Number _)] = return $ Bool True
+testNumber [_]          = return $ Bool False
+testNumber badArgList   = throwError $ NumArgs 1 badArgList
+
+symbolToString :: [LispVal] -> ThrowsError LispVal
+symbolToString [(Atom symbol)] = return $ String symbol
+symbolToString [x]             = throwError $ TypeMismatch "symbol" x
+symbolToString badArgList      = throwError $ NumArgs 1 badArgList
+
+stringToSymbol :: [LispVal] -> ThrowsError LispVal
+stringToSymbol [(String str)] = return $ Atom str
+stringToSymbol [x]            = throwError $ TypeMismatch "string" x
+stringToSymbol badArgList     = throwError $ NumArgs 1 badArgList
