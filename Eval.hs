@@ -15,8 +15,8 @@ eval (List [Atom "quote", val]) = return val
 eval (List [Atom "if", pred, conseq, alt]) = do
   result <- eval pred
   case result of
-    Bool True -> eval conseq
-    otherwise -> eval alt
+    Bool False -> eval alt
+    otherwise  -> eval conseq
 eval form@(List (Atom "if":_)) = throwError $ BadSpecialForm "Bad special form" form
 
 eval (List (Atom func:args)) = mapM eval args >>= apply func
