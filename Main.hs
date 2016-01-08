@@ -2,11 +2,13 @@ module Main where
 
 import LispData
 import Parsers
-import Text.ParserCombinators.Parsec (parse, ParseError)
+import Error
+import Text.ParserCombinators.Parsec (parse)
 import System.Environment
 import System.IO
 import Control.Exception
-import Control.Monad.Except
+import Control.Monad                 (liftM)
+import Control.Monad.Except          (throwError)
 
 main :: IO ()
 main = do
@@ -105,29 +107,3 @@ numericBinop op params = mapM unpackNum params >>= return . Number . foldl1 op
           else return $ fst $ parsed !! 0
         unpackNum (List [n]) = unpackNum n
         unpackNum notNum     = throwError $ TypeMismatch "number" notNum
-
-data LispError = NumArgs Integer [LispVal]
-               | TypeMismatch String LispVal
-               | Parser ParseError
-               | BadSpecialForm String LispVal
-               | NotFunction String String
-               | UnboundVar String String
-               | Default String
-
-showError :: LispError -> String
-showError (UnboundVar message varname)  = message ++ ": " ++ varname
-showError (BadSpecialForm message form) = message ++ ": " ++ show form
-showError (NotFunction message func)    = message ++ ": " ++ show func
-showError (NumArgs expected found)      = "Expected " ++ show expected ++ " args; found values " ++ unwordsList found
-showError (TypeMismatch expected found) = "Invalid type: expected " ++ expected ++ ", found " ++ show found
-showError (Parser parseErr)             = "Parse error at " ++ show parseErr
-
-instance Show LispError where show = showError
-
-type ThrowsError = Either LispError
-
-trapError :: (Either LispError String) -> Either LispError String
-trapError action = catchError action (return . show)
-
-extractValue :: ThrowsError a -> a
-extractValue (Right val) = val
